@@ -11,12 +11,84 @@
   limitations under the License.
 -->
 
+<script type="text/x-red" data-template-name="modbusSerialConfig">
+  <div class="form-row">
+    <label for="node-config-input-port"><i class="fa "></i> Port</label>
+    <input type="text" id="node-config-input-port" placeholder="/dev/ttyUSB0">
+  </div>
+  <div class="form-row">
+    <table width="100%">
+      <tr>
+        <td width="100px"><i class="fa fa-wrench"></i> Settings</td>
+        <td width="110px">Baud Rate</td>
+        <td with="70px">Data Bits</td>
+        <td width="80px">Parity</td>
+        <td width="70px">Stop Bits</td>
+      </tr>
+      <tr>
+        <td>&nbsp;</td>
+        <td>
+          <input type="text" id="node-config-input-baud" style="width:100px">
+        </td>
+        <td>
+          <select type="text" id="node-config-input-data" style="width:70px">
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+          </select>
+        </td>
+        <td>
+          <select type="text" id="node-config-input-parity" style="width:80px">
+            <option value="none">None</option>
+            <option value="even">Even</option>
+            <option value="mark">Mark</option>
+            <option value="odd">Odd</option>
+            <option value="space">Space</option>
+          </select>
+        </td>
+        <td>
+          <select type="text" id="node-config-input-stop" style="width:70px">
+            <option value="2">2</option>
+            <option value="1">1</option>
+          </select>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa "></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="ModbusSerial">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="modbusSerialConfig">
+  <p>Details of the serial port to use to connect to the RS485 bus</p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType("modbusSerialConfig",{
+    category:'config',
+    defaults: {
+      port: {value: '', required: true},
+      baud: {value: 38400, required: true},
+      data: {value: 8, required: true},
+      parity: {value: 'none', required: true},
+      stop: {value: 1, required: true},
+      name: {value: ''}
+    },
+    label: function(){
+      return this.name || this.port + ":" + this.baud;
+    }
+  });
+</script>
+
 <script type="text/x-red" data-template-name="modbusSerial in">
   <div class="form-row">
     <label for="node-input-port"><i class="fa "></i> Port</label>
     <input type="text" id="node-input-port" placeholder="/dev/ttyUSB0">
   </div>
-  <div class="form-row">
+  <!-- <div class="form-row">
     <table width="100%">
       <tr>
         <td width="100px"><i class="fa fa-wrench"></i> Settings</td>
@@ -55,7 +127,7 @@
         </td>
       </tr>
     </table>
-  </div>
+  </div> -->
   <div class="form-row">
     <label for="node-input-slaves"><i class="fa "></i> Slaves</label>
     <input type="text" id="node-input-slaves">
@@ -101,23 +173,73 @@
   RED.nodes.registerType("modbusSerial in",{
     category:'foo',
     defaults: {
-      port: {value:"", required: true},
-      baud: {value:38400, required: true},
-      data: {value:8, required: true},
-      parity: {value:'none', required: true},
-      stop: {value:1, required: true},
+      port: {type: 'modbusSerialConfig', required: true},
+      // port: {value:"", required: true},
+      // baud: {value:38400, required: true},
+      // data: {value:8, required: true},
+      // parity: {value:'none', required: true},
+      // stop: {value:1, required: true},
       slaves: {required: true},
       start: {required:true},
       count: {value:1, required: true},
       dtype: {value:'coil', required: true},
       period: {value:60, required: true},
-      topic: {},
+      topic: {value: ''},
       name: {value:''}
     },
     outputs: 1,
     inputs: 0,
     label: function() {
       return this.name || "Modbus-Serial In";
+    },
+    color: 'grey',
+    icon: ''
+  });
+</script>
+
+<script type="text/x-red" data-template-name="modbusSerial out">
+  <div class="form-row">
+    <label for="node-input-port"><i class="fa "></i> Port</label>
+    <input type="text" id="node-input-port" placeholder="/dev/ttyUSB0">
+  </div>
+    <div class="form-row">
+    <label for="node-input-slaves"><i class="fa "></i> Slaves</label>
+    <input type="text" id="node-input-slaves">
+  </div>
+  <div class="form-row">
+    <label for="node-input-dtype"><i class="fa "></i> Type</label>
+    <select type="text" id="node-input-dtype">
+      <option value="descrete">Descrete</option>
+      <option value="coil">Coil</option>
+      <option value="input">Input Register</option>
+      <option value="holding">Holding Register</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-start"><i class="fa "></i> Start</label>
+    <input type="text" id="node-input-start">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="modbusSerial out">
+  <p>Write data </p>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType("modbusSerial out",{
+    category:'foo',
+    defaults: {
+      port: {type: 'modbusSerialConfig', required: true},
+      slaves: {required: true},
+      start: {required:true},
+      dtype: {value:'coil', required: true},
+      topic: {value: ''},
+      name: {value:''}
+    },
+    outputs: 0,
+    inputs: 1,
+    label: function(){
+      return this.name || "Modbus-Serial Out";
     },
     color: 'grey',
     icon: ''

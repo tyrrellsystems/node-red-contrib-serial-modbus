@@ -14,22 +14,195 @@
  * limitations under the License.
  **/
 
-"use strict";
-var modbus = require('modbus-serial');
-var bluebird = require('bluebird');
-
 module.exports = function(RED) {
+  "use strict";
+  var modbus = require('modbus-serial');
+  var bluebird = require('bluebird');
+  var util = require('util');
+  var events = require("events");
+
+  var settings = RED.settings;
+
+  var ports = {};
+
+  function config(n){
+    RED.nodes.createNode(this,n);
+    this.port = n.port;
+    this.baud = parseInt(n.baud);
+    this.data = n.data;
+    this.parity = n.parity;
+    this.stop = parseInt(n.stop);
+
+    this.requests = [];
+
+    //events.EventEmitter.call(this);
+
+    if (ports[this.port]) {
+      //error
+    } else {
+      ports[this.port] = this;
+    }
+
+    var node = this;
+
+    this.connected = false;
+
+    this.client = new modbus();
+    this.client.setTimeout(1000);
+    try {
+      this.client.connectRTUBuffered(node.port, {
+        baudRate: node.baud, 
+        dataBits: node.data, 
+        parity: node.parity, 
+        stopBits: node.stop
+      },
+      function() {
+        node.emit('connected');
+        node.connected = true;
+      });
+    } catch (err) {
+      console.log("foo - " + err);
+    }
+
+    node.processing = false;
+
+    function processList() {
+      node.processing = true;
+      if (node.requests.length != 0) {
+        var obj = node.requests.pop();
+        var promise;
+        switch(obj.type) {
+          case 'readCoils':
+            node.client.setID(obj.id);
+            promise = node.client.readCoils(obj.offset, obj.length);
+          break;
+          case 'readDiscreteInputs':
+            node.client.setID(obj.id);
+            promise = node.client.readDiscreteInputs(obj.offset, obj.length);
+          break;
+          case 'readInputRegisters':
+            node.client.setID(obj.id);
+            promise = node.client.readInputRegisters(obj.offset, obj.length);
+          break;
+          case 'readHoldingRegisters':
+            node.client.setID(obj.id);
+            promise =  node.client.readHoldingRegisters(obj.offset, obj.length);
+          break;
+        }
+
+        promise
+        .catch(function (err){
+          console.log("Error: ", err);
+        })
+        .then(function (data){
+          obj.callback(data);
+        }).then(function (){
+          processList();
+        });
+      } else {
+        node.processing = false;
+      }
+    }
+
+
+    this.readCoils = function(id, offset, length, callback) {
+      var obj = {
+        id: id,
+        type: 'readCoils',
+        offset: offset,
+        length: length,
+        callback: callback
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+    };
+
+    this.readDiscreteInputs = function(id, offset, length, callback) {
+      var obj = {
+        id: id,
+        type: 'readDiscreteInputs',
+        offset: offset,
+        length: length,
+        callback: callback
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+    };
+
+    this.readInputRegisters = function(id, offset, length, callback) {
+      var obj = {
+        id: id,
+        type: 'readInputRegisters',
+        offset: offset,
+        length: length,
+        callback: callback
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+    };
+
+    this.readHoldingRegisters = function(id, offset, length, callback) {
+      var obj = {
+        id: id,
+        type: 'readHoldingRegisters',
+        offset: offset,
+        length: length,
+        callback: callback
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+    };
+
+    this.writeCoils = function(id,offset,data) {
+      node.client.setID(id);
+      node.client.writeCoils(offset, data);
+    };
+
+    this.writeDiscreteInputs = function (id,offset,data) {
+
+    };
+
+    this.writeInputRegisters = function(id,offset,data) {
+      node.client.setID(id);
+      node.client.writeRegisters(offset,data);
+    };
+
+    this.writeHoldingRegisters = function(id,offset,data) {
+
+    };
+
+    this.on('close',function(){
+      if(ports[node.port]) {
+        delete ports[node.port];
+      }
+    });
+
+  };  
+
+  //util.inherits(config, events.EventEmitter);
+
+  RED.nodes.registerType('modbusSerialConfig', config);
+
+
   function read(n) {
     RED.nodes.createNode(this,n);
     this.port = n.port;
-    this.baud = n.baud;
-    this.data = n.data;
-    this.parity = n.parity;
-    this.stop = n.stop;
+
+    this.connection = RED.nodes.getNode(this.port);
+
+    //this.device = n.device;
 
     this.slaves = n.slaves;
     this.start = n.start;
-    this.count = n.count;
+    this.count =  n.count;
     this.dtype = n.dtype;
 
     this.period = n.period;
@@ -38,23 +211,16 @@ module.exports = function(RED) {
 
     var node = this;
 
-    node.client = new modbus();
-    try {
-
-      node.client.setTimeout(1000);
-      node.client.connectRTUBuffered(node.port, {
-        baudrate: node.baud, 
-        dataBits: node.data, 
-        parity: node.parity, 
-        stopBits: node.stop},
-        function() {          
-          node.status({fill:"green", shape: "dot", text:"connected"});
-          node.interval = setInterval(poll, (1000 * node.period));
-          poll();
-        });
-    } catch(err) {
-      node.error(err);
-      node.status({fill:"red", shape: "dot", text:"disconnected"});
+    if (node.connection.connected) {
+      node.status({fill:"green", shape: "dot", text:"connected"});
+      node.interval = setInterval(poll, (1000 * node.period));
+      poll();
+    } else {
+      node.connection.on('connected',function(){
+        node.status({fill:"green", shape: "dot", text:"connected"});
+        node.interval = setInterval(poll, (1000 * node.period));
+        poll();
+      });
     }
 
     function poll() {
@@ -65,65 +231,64 @@ module.exports = function(RED) {
         slaves.push(node.slaves);
       }
 
-      node.log(slaves);
+      function callback(data) {
+        var topic = node.topic;
+        if (topic.lastIndexOf('/') != topic.length) {
+          topic += '/'
+        }
+        var msg = {
+          topic: topic + slave,
+          payload: data.buffer
+        };
+        node.send(msg);
+      }
 
-      function pull(list) {
-        if (!list.length) {
-          //console.log("empty list");
-          return;
+      for (var i=0; i<slaves.length; i++) {
+        var slave = slaves[i];
+        if (node.dtype === 'discrete') {
+          node.connection.readDiscreteInputs(slave,node.start, node.count,callback);
+        } else if (node.dtype === 'coil') {
+          node.connection.readCoils(slave,node.start, node.count,callback);
+        } else if (node.dtype === 'input') {
+          node.connection.readInputRegisters(slave,node.start, node.count,callback)
+        } else if (node.dtype === 'holding') {
+          node.connection.readHoldingRegisters(slave,node.start, node.count,callback);
         }
 
-        var slave = list[0];
-        var promise = new bluebird(function(resolve,reject){
-          node.client.setID(slave);
-
-          var readProm;
-          if (node.dtype === 'discrete') {
-            readProm = node.client.readDiscreteInputs(node.start, node.count);
-          } else if (node.dtype === 'coil') {
-            readProm = node.client.readCoils(node.start, node.count);
-          } else if (node.dtype === 'input') {
-            readProm = node.client.readInputRegisters(node.start, node.count)
-          } else if (node.dtype === 'holding') {
-            readProm = node.client.readHoldingRegisters(node.start, node.count);
-          }
-
-          //console.log(readProm);
-
-          readProm
-          .catch(function(err){
-             //warn
-             node.warn("failed to read from slave: " + slave);
-             console.log(err);
-          })
-          .then(function(data){
-            var msg = {
-              topic: node.topic +'/' + slave,
-              payload: data.buffer
-            };
-            node.send(msg);
-            resolve();
-          });
-        });
-
-        promise.error(function(){
-          //console.log("error");
-          pull(slaves.slice(1));
-        })
-        .then(function() {
-          //console.log("success");
-          pull(slaves.slice(1));
-        });
       }
-      pull(slaves);
-    };
+    }
 
     node.on('close', function(done){
-      node.client.close(function(){
-        done();
-      });
-    })
+      clearInterval(node.interval);
+    });
   }
 
   RED.nodes.registerType('modbusSerial in', read);
+
+  function write(n) {
+    RED.nodes.createNode(this,n);
+    this.port = n.port;
+
+    this.device = n.device;
+    this.start = n.start;
+    this.dtype = n.dtype;
+
+    this.connection = RED.nodes.getNode(this.port);
+
+    var node = this;
+
+    if (node.connection.connected) {
+      node.status({fill:"green", shape: "dot", text:"connected"});
+      node.interval = setInterval(poll, (1000 * node.period));
+      poll();
+    } else {
+      node.connection.on('connected',function(){
+        node.status({fill:"green", shape: "dot", text:"connected"});
+        node.interval = setInterval(poll, (1000 * node.period));
+        poll();
+      });
+    }
+  };
+
+  RED.nodes.registerType('modbusSerial out', write);
 }
