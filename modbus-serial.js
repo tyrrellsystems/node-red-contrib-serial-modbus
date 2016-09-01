@@ -88,17 +88,34 @@ module.exports = function(RED) {
             node.client.setID(obj.id);
             promise =  node.client.readHoldingRegisters(obj.offset, obj.length);
           break;
+          case 'writeCoils':
+            node.client.setID(obj.id);
+            promise = node.client.writeCoils(obj.offset, obj.data);
+          break;
+          case 'writeInputRegisters':
+            //console.log("writing regs: ", obj);
+            node.client.setID(obj.id);
+            promise = node.client.writeRegisters(obj.offset, obj.data);            
+          break;
         }
 
-        promise
-        .catch(function (err){
-          console.log("Error: ", err);
-        })
-        .then(function (data){
-          obj.callback(data);
-        }).then(function (){
+        if (promise) {
+          promise
+          .catch(function (err){
+            console.log("Error: ", err);
+          })
+          .then(function (data){
+            if (obj.callback) {
+              obj.callback(data);
+            } else {
+              console.log("no callback");
+            }
+          }).then(function (){
+            processList();
+          });
+        } else {
           processList();
-        });
+        }
       } else {
         node.processing = false;
       }
@@ -162,21 +179,41 @@ module.exports = function(RED) {
     };
 
     this.writeCoils = function(id,offset,data) {
-      node.client.setID(id);
-      node.client.writeCoils(offset, data);
+      var obj = {
+        id: id,
+        type: 'writeCoils',
+        data: data,
+        offset: offset
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+      //node.client.setID(id);
+      //node.client.writeCoils(offset, data);
     };
 
     this.writeDiscreteInputs = function (id,offset,data) {
-
+      this.writeCoils(id,offset,data);
     };
 
     this.writeInputRegisters = function(id,offset,data) {
-      node.client.setID(id);
-      node.client.writeRegisters(offset,data);
+      var obj = {
+        id: id,
+        type: 'writeInputRegisters',
+        data: data,
+        offset: offset
+      };
+      node.requests.push(obj);
+      if (!node.processing) {
+        processList();
+      }
+      // node.client.setID(id);
+      // node.client.writeRegisters(offset,data);
     };
 
     this.writeHoldingRegisters = function(id,offset,data) {
-
+      this.writeInputRegisters(id,offset,data);
     };
 
     this.on('close',function(){
@@ -269,7 +306,7 @@ module.exports = function(RED) {
     RED.nodes.createNode(this,n);
     this.port = n.port;
 
-    this.device = n.device;
+    this.device = n.slave;
     this.start = n.start;
     this.dtype = n.dtype;
 
@@ -279,15 +316,46 @@ module.exports = function(RED) {
 
     if (node.connection.connected) {
       node.status({fill:"green", shape: "dot", text:"connected"});
-      node.interval = setInterval(poll, (1000 * node.period));
-      poll();
     } else {
       node.connection.on('connected',function(){
         node.status({fill:"green", shape: "dot", text:"connected"});
-        node.interval = setInterval(poll, (1000 * node.period));
-        poll();
       });
     }
+
+    node.on('input',function(msg) {
+
+      var slave = node.device;
+      if (!slave && msg.topic) {
+        if (msg.topic.IndexOf('/') != -1) {
+          var part = msg.topic.substring(msg.topic.lastIndexOf('/'), msg.topic.length);
+          try{
+            slave = parseInt(part);
+          } catch (err) {
+            //not int
+          }
+        } else {
+          try {
+            slave = parseInt(msg.topic);
+          } catch (err) {
+            //not int
+          }
+        }
+      }
+
+      console.log(node.dtype);
+
+      //if (util.isBuffer(msg.payload)){
+        if (node.dtype === 'discrete') {
+          node.connection.writeDiscreteInputs(slave, node.start, msg.payload);
+        } else if (node.dtype === 'coil') {
+          node.connection.writeCoils(slave, node.start, msg.payload);
+        } else if (node.dtype === 'input') {
+          node.connection.writeInputRegisters(slave, node.start, msg.payload);
+        } else if (node.dtype === 'holding') {
+          node.connection.writeHoldingRegisters(slave, node.start, msg.payload);
+        }
+      //}
+    });
   };
 
   RED.nodes.registerType('modbusSerial out', write);

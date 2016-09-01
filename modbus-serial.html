@@ -203,8 +203,8 @@
     <input type="text" id="node-input-port" placeholder="/dev/ttyUSB0">
   </div>
     <div class="form-row">
-    <label for="node-input-slaves"><i class="fa "></i> Slaves</label>
-    <input type="text" id="node-input-slaves">
+    <label for="node-input-slave"><i class="fa "></i> Slave</label>
+    <input type="text" id="node-input-slave">
   </div>
   <div class="form-row">
     <label for="node-input-dtype"><i class="fa "></i> Type</label>
@@ -222,7 +222,11 @@
 </script>
 
 <script type="text/x-red" data-help-name="modbusSerial out">
-  <p>Write data </p>
+  <p>A node to update the state of a Modbus device.</p>
+  <p>Slave is the address of the device to update (only one device). If left blank 
+  then the msg.topic will be used if it's a integer. The last part of topic, 
+  seperated by '/' will be used</p>
+  <p></p>
 </script>
 
 <script type="text/javascript">
@@ -230,7 +234,7 @@
     category:'foo',
     defaults: {
       port: {type: 'modbusSerialConfig', required: true},
-      slaves: {required: true},
+      slave: {required: true},
       start: {required:true},
       dtype: {value:'coil', required: true},
       topic: {value: ''},
