@@ -171,7 +171,7 @@
 
 <script type="text/javascript">
   RED.nodes.registerType("modbusSerial in",{
-    category:'foo',
+    category:'modbus',
     defaults: {
       port: {type: 'modbusSerialConfig', required: true},
       // port: {value:"", required: true},
@@ -231,7 +231,7 @@
 
 <script type="text/javascript">
   RED.nodes.registerType("modbusSerial out",{
-    category:'foo',
+    category:'modbus',
     defaults: {
       port: {type: 'modbusSerialConfig', required: true},
       slave: {required: true},

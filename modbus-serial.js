@@ -29,7 +29,7 @@ module.exports = function(RED) {
     RED.nodes.createNode(this,n);
     this.port = n.port;
     this.baud = parseInt(n.baud);
-    this.data = n.data;
+    this.data = parseInt(n.data);
     this.parity = n.parity;
     this.stop = parseInt(n.stop);
 

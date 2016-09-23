@@ -1,6 +1,6 @@
 {
   "name": "node-red-contrib-serial-modbus",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Node to read values from a Modbus slave via RS485",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
