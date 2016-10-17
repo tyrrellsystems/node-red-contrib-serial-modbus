@@ -102,13 +102,13 @@ module.exports = function(RED) {
         if (promise) {
           promise
           .catch(function (err){
-            console.log("Error: ", err);
+            node.log("Error: ", err);
           })
           .then(function (data){
             if (obj.callback) {
               obj.callback(data);
             } else {
-              console.log("no callback");
+              node.log("no callback");
             }
           }).then(function (){
             processList();
@@ -216,9 +216,10 @@ module.exports = function(RED) {
       this.writeInputRegisters(id,offset,data);
     };
 
-    this.on('close',function(){
+    this.on('close',function(done){
       if(ports[node.port]) {
         delete ports[node.port];
+        node.client.close(done);
       }
     });
 
