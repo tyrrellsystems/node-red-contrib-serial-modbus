@@ -296,7 +296,7 @@ module.exports = function(RED) {
       }
     }
 
-    node.on('close', function(done){
+    node.on('close', function(){
       clearInterval(node.interval);
     });
   }
