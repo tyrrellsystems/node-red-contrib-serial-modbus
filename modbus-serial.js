@@ -216,10 +216,13 @@ module.exports = function(RED) {
       this.writeInputRegisters(id,offset,data);
     };
 
-    this.on('close',function(){
+    this.on('close',function(done){
       if(ports[node.port]) {
         delete ports[node.port];
       }
+      node.client.close(function(){
+        done();
+      });
     });
 
   };  
