@@ -17,7 +17,7 @@
     "type": "git",
     "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus"
   },
-  "bug": {
+  "bugs" :{
     "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus/issues"
   },
   "dependencies": {
