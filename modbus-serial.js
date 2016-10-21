@@ -102,7 +102,7 @@ module.exports = function(RED) {
         if (promise) {
           promise
           .catch(function (err){
-            node.log("Error: ", err);
+            node.log("Error: " + err);
           })
           .then(function (data){
             if (obj.callback) {
