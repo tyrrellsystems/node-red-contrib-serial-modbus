@@ -220,7 +220,7 @@ module.exports = function(RED) {
       if(ports[node.port]) {
         delete ports[node.port];
         node.client.close(done);
-      }
+      } 
     });
 
   };  
