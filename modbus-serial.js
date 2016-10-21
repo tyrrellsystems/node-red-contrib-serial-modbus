@@ -221,9 +221,6 @@ module.exports = function(RED) {
         delete ports[node.port];
         node.client.close(done);
       }
-      node.client.close(function(){
-        done();
-      });
     });
 
   };  
