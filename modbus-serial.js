@@ -105,10 +105,12 @@ module.exports = function(RED) {
             node.log("Error: " + err);
           })
           .then(function (data){
-            if (obj.callback) {
-              obj.callback(data);
-            } else {
-              node.log("no callback");
+            if (typeof data !== 'undefined') {
+              if (obj.callback) {
+                obj.callback(data);
+              } else {
+                node.log("no callback");
+              }
             }
           }).then(function (){
             processList();
