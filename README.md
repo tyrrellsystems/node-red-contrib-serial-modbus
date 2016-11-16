@@ -30,3 +30,11 @@ The read node takes the following list of inputs
  - A polling interval in seconds
 
 ###Write node
+
+The write node takes the following inputs
+
+ - Slave to send the data to, if the salve is not set then it can
+ be taken from the topic. If the topic has '/' it will take the
+ last element and try and parse a number to use as the slave
+ - The type of record to write
+ - The offset to write the data to
