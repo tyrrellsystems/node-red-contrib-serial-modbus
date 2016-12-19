@@ -166,7 +166,13 @@
 <script type="text/x-red" data-help-name="modbusSerial in">
   <p>A Node-RED node to read values from Modus devices over a 
   serial connection.</p>
-  <p>The node takes a comma seperated list of slave ids and start and number of fields to read. The node will poll each slave in turn at the given interval and send one message per slave.</p>
+  <p>The node takes a comma seperated list of slave ids and start 
+  and number of fields to read. The node will poll each slave in 
+  turn at the given interval and send one message per slave.</p>
+  <p>The output messages have a buffer payload and the the slave 
+  id appended to the configured topic.</p>
+  <p>For help with parsing the buffer into constituent parts see
+  the Formating data section of the README.md</p>
 </script>
 
 <script type="text/javascript">
@@ -226,7 +232,9 @@
   <p>Slave is the address of the device to update (only one device). If left blank 
   then the msg.topic will be used if it's a integer. The last part of topic, 
   seperated by '/' will be used</p>
-  <p></p>
+  <p>The <i>msg.payload</i> of the input should be a buffer object formated to
+  match what ever format the device expects. The Formating Data section of the
+  README.md has guidence on how to do this.</p>
 </script>
 
 <script type="text/javascript">

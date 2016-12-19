@@ -1,14 +1,14 @@
-#node-red-contrib-serial-modbus
+# node-red-contrib-serial-modbus
 
 A node to read data via Modbus over RS485 serial
 
-##Install
+## Install
 
 npm install node-red-contrib-serial-modbus
 
-##Usage
+## Usage
 
-###Config node
+### Config node
 
 Both the read and write nodes share a config node that holds the details of 
 RS485 port used to connect to the bus.
@@ -19,7 +19,7 @@ RS485 port used to connect to the bus.
  - Parity
  - Stop Bits
 
-###Read node
+### Read node
 
 The read node takes the following list of inputs
 
@@ -29,7 +29,7 @@ The read node takes the following list of inputs
  - The type of record (coil,register)
  - A polling interval in seconds
 
-###Write node
+### Write node
 
 The write node takes the following inputs
 
@@ -38,3 +38,29 @@ The write node takes the following inputs
  last element and try and parse a number to use as the slave
  - The type of record to write
  - The offset to write the data to
+
+
+## Formating data
+
+Both the Read and the Write node work with Buffer objects, these represent
+the raw data being transfered. To turn this into real values there are a 
+number of approaches that can be taken.
+
+### Buffer methods
+
+The Buffer module has a selection of methods that lets you read/write Integer
+and Floating point values at different lengths and endian modes.
+
+A full list of methods can be found [here](https://nodejs.org/docs/v0.10.48/api/buffer.html).
+
+You can use these methods in a Function node to unpack a buffer after a read
+node or to build a buffer object before a write node.
+
+### Node-RED node-red-contrib-binary
+
+The [node-red-contrib-binary](http://flows.nodered.org/node/node-red-contrib-binary) 
+node allows will automatically convert a JSON object to a buffer and also parse
+buffers to JSON objects.
+
+The node uses a pattern language to describe the layout of the buffer. Details of
+language are documented in the [packet](https://github.com/bigeasy/packet) node
