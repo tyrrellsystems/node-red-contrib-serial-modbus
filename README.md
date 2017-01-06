@@ -1,6 +1,7 @@
 # node-red-contrib-serial-modbus
 
-A node to read data via Modbus over RS485 serial
+A node to read data via Modbus over RS485 serial.
+Output or Input of type buffer.  If value is bigger than one register/coil it will continue to the next one
 
 ## Install
 
