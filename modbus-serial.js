@@ -101,8 +101,7 @@ module.exports = function(RED) {
         if (promise) {
           promise
           .catch(function (err){
-//            node.error("Error: " + JSON.stringify(err));          
-            node.error("Error: " + err.message);
+            node.error("Error: " + JSON.stringify(err));          
           })
           .then(function (data){
             if (typeof data !== 'undefined') {
