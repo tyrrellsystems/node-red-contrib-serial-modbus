@@ -270,6 +270,7 @@ module.exports = function(RED) {
       } else {
         slaves.push(node.slaves);
       }
+      slaves = slaves.map(Number); // convert strings to numbers
 
       function callback(data) {
         var topic = node.topic;
