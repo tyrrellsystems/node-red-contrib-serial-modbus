@@ -93,7 +93,6 @@ module.exports = function(RED) {
             promise = node.client.writeCoils(obj.offset, obj.data);
           break;
           case 'writeInputRegisters':
-            //console.log("writing regs: ", obj);
             node.client.setID(obj.id);
             promise = node.client.writeRegisters(obj.offset, obj.data);            
           break;
@@ -102,7 +101,8 @@ module.exports = function(RED) {
         if (promise) {
           promise
           .catch(function (err){
-            node.log("Error: " + err);
+//            node.error("Error: " + JSON.stringify(err));          
+            node.error("Error: " + err.message);
           })
           .then(function (data){
             if (typeof data !== 'undefined') {
