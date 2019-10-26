@@ -17,13 +17,13 @@
     "type": "git",
     "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus"
   },
-  "bugs" :{
+  "bugs": {
     "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus/issues"
   },
   "dependencies": {
-    "bluebird": "^3.5.3",
-    "modbus-serial": "^7.4.2",
-    "serialport": "^7.0.1"
+    "bluebird": "^3.7.1",
+    "modbus-serial": "^7.7.3",
+    "serialport": "^7.1.5"
   },
   "node-red": {
     "nodes": {
