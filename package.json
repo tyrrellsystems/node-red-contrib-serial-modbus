@@ -12,13 +12,14 @@
     "rs485"
   ],
   "author": "hardillb@gmail.com",
+  "contributor": ["Leif Neland (leif@neland.dk)"], 
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus"
+    "url": "https://github.com/leifnel/node-red-contrib-serial-modbus"
   },
   "bugs": {
-    "url": "https://github.com/tyrrellsystems/node-red-contrib-serial-modbus/issues"
+    "url": "https://github.com/leifnel/node-red-contrib-serial-modbus/issues"
   },
   "dependencies": {
     "bluebird": "^3.7.1",
