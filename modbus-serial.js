@@ -70,6 +70,7 @@ module.exports = function(RED) {
       node.processing = true;
       if (node.requests.length != 0) {
         var obj = node.requests.pop();
+        obj.id = +obj.id;
         var promise;
         switch(obj.type) {
           case 'readCoils':
