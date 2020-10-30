@@ -70,6 +70,7 @@ module.exports = function(RED) {
       node.processing = true;
       if (node.requests.length != 0) {
         var obj = node.requests.pop();
+        obj.id = +obj.id;
         var promise;
         switch(obj.type) {
           case 'readCoils':
@@ -93,7 +94,6 @@ module.exports = function(RED) {
             promise = node.client.writeCoils(obj.offset, obj.data);
           break;
           case 'writeInputRegisters':
-            //console.log("writing regs: ", obj);
             node.client.setID(obj.id);
             promise = node.client.writeRegisters(obj.offset, obj.data);            
           break;
@@ -102,7 +102,7 @@ module.exports = function(RED) {
         if (promise) {
           promise
           .catch(function (err){
-            node.log("Error: " + err);
+            node.error("Error: " + JSON.stringify(err));          
           })
           .then(function (data){
             if (typeof data !== 'undefined') {
@@ -270,6 +270,7 @@ module.exports = function(RED) {
       } else {
         slaves.push(node.slaves);
       }
+      slaves = slaves.map(Number); // convert strings to numbers
 
       function callback(data) {
         var topic = node.topic;
